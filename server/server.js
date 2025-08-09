@@ -147,27 +147,36 @@ async function endRound(roomId, room){
   broadcastState(roomId);
 }
 
+const EMPTY_GRID = Array(12).fill(null);
+const getGrid   = (p) => Array.isArray(p?.grid)   ? p.grid   : EMPTY_GRID;
+const getFaceUp = (p) => Array.isArray(p?.faceUp) ? p.faceUp : [];
+
 function publicState(room){
   return {
-    players: room.players.map((p, idx) => ({
-      id: p.id,
-      name: p.name,
-      total: p.total,
-      scoreRound: p.scoreRound,
-      revealedAll: p.revealedAll,
-      isTurn: idx === room.turn,
-      gridPublic: p.grid.map((v,i) => p.faceUp.includes(i) ? v : null),
-      faceUp: p.faceUp
-    })),
-    discardTop: room.discard.at(-1) ?? null,
-    drawCount: room.deck.length,
-    turn: room.turn,
-    started: room.started,
-    endedByIndex: room.endedByIndex,
-    roundClosing: room.roundClosing,
-    targetScore: room.targetScore
+    players: room.players.map((p, idx) => {
+      const faceUp = getFaceUp(p);
+      const grid   = getGrid(p);
+      return {
+        id: p.id,
+        name: p.name,
+        total: p.total ?? 0,
+        scoreRound: p.scoreRound ?? 0,
+        revealedAll: !!p.revealedAll,
+        isTurn: idx === room.turn,
+        gridPublic: grid.map((v,i) => faceUp.includes(i) ? v : null),
+        faceUp
+      };
+    }),
+    discardTop: room.discard?.at?.(-1) ?? null,
+    drawCount: Array.isArray(room.deck) ? room.deck.length : 0,
+    turn: room.turn ?? 0,
+    started: !!room.started,
+    endedByIndex: room.endedByIndex ?? null,
+    roundClosing: !!room.roundClosing,
+    targetScore: room.targetScore ?? DEFAULT_TARGET_SCORE
   };
 }
+
 
 function send(ws, payload){ try{ ws.send(JSON.stringify(payload)); } catch{} }
 
@@ -180,7 +189,7 @@ function broadcastState(roomId){
     const common = { t:'state', roomId, state: publicState(room) };
     targets.forEach(c => {
       const me = room.players.find(p => p.id === c.playerId);
-      const mine = me ? { grid: me.grid, faceUp: me.faceUp } : null;
+      const mine = me ? { grid: getGrid(me), faceUp: getFaceUp(me) } : null;
       send(c, { ...common, you: mine });
     });
   });
@@ -205,7 +214,7 @@ wss.on('connection', (ws) => {
       send(ws, { t:'created', roomId, playerId: ws.playerId });
       const snap = await getRoom(roomId);
       const me   = snap.players.find(p => p.id === ws.playerId);
-      send(ws, { t:'state', roomId, state: publicState(snap), you: { grid: me.grid, faceUp: me.faceUp } });
+      send(ws, { t:'state', roomId, state: publicState(snap), you: { grid: getGrid(me), faceUp: getFaceUp(me) } });
 
       // Broadcast an alle (falls schon weitere Clients dran hängen)
       broadcastState(roomId);
@@ -227,7 +236,7 @@ wss.on('connection', (ws) => {
       send(ws, { t:'joined', roomId: ws.roomId, playerId: ws.playerId });
       const snap = await getRoom(ws.roomId);
       const me   = snap.players.find(p => p.id === ws.playerId);
-      send(ws, { t:'state', roomId: ws.roomId, state: publicState(snap), you: { grid: me.grid, faceUp: me.faceUp } });
+      send(ws, { t:'state', roomId, state: publicState(snap), you: { grid: getGrid(me), faceUp: getFaceUp(me) } });
 
       // Broadcast an alle
       broadcastState(ws.roomId);
