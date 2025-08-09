@@ -26,4 +26,5 @@ jobs:
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository_owner,, }}/skygrid:latest
+          tags: ghcr.io/${{ toLower(github.repository_owner) }}/skygrid:latest
+
