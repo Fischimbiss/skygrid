@@ -2,14 +2,14 @@
 FROM node:20-alpine AS clientbuild
 WORKDIR /app/client
 COPY client/package*.json ./
-RUN npm ci
+RUN npm install
 COPY client ./
 RUN npm run build
 
 FROM node:20-alpine AS serverbuild
 WORKDIR /app/server
 COPY server/package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 COPY server ./
 
 FROM node:20-alpine
