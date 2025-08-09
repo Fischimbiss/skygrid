@@ -16,6 +16,7 @@ const PORT = process.env.PORT || 3000;
 const REDIS_URL = process.env.REDIS_URL || null;
 const redis = REDIS_URL ? new Redis(REDIS_URL) : null;
 const sub = REDIS_URL ? new Redis(REDIS_URL) : null;
+const MIN_PLAYERS = parseInt(process.env.MIN_PLAYERS || '2', 10);
 
 const app = express();
 const clientDist = path.join(__dirname, '..', 'client', 'dist');
@@ -199,10 +200,18 @@ wss.on('connection', (ws) => {
       room.players.push({ id: ws.playerId, name: msg.name || 'Spieler', connected: true, total: 0 });
       await setRoom(roomId, room);
       if (sub) await sub.subscribe(roomChan(roomId));
+
+      // Antwort + sofortiger eigener State-Snapshot
       send(ws, { t:'created', roomId, playerId: ws.playerId });
+      const snap = await getRoom(roomId);
+      const me   = snap.players.find(p => p.id === ws.playerId);
+      send(ws, { t:'state', roomId, state: publicState(snap), you: { grid: me.grid, faceUp: me.faceUp } });
+
+      // Broadcast an alle (falls schon weitere Clients dran hängen)
       broadcastState(roomId);
       return;
     }
+
 
     // Join
     if (msg.t === 'join') {
@@ -213,10 +222,18 @@ wss.on('connection', (ws) => {
       room.players.push({ id: ws.playerId, name: msg.name || 'Spieler', connected: true, total: 0 });
       await setRoom(ws.roomId, room);
       if (sub) await sub.subscribe(roomChan(ws.roomId));
+
+      // Antwort + sofortiger eigener State-Snapshot
       send(ws, { t:'joined', roomId: ws.roomId, playerId: ws.playerId });
+      const snap = await getRoom(ws.roomId);
+      const me   = snap.players.find(p => p.id === ws.playerId);
+      send(ws, { t:'state', roomId: ws.roomId, state: publicState(snap), you: { grid: me.grid, faceUp: me.faceUp } });
+
+      // Broadcast an alle
       broadcastState(ws.roomId);
       return;
     }
+
 
     if (!ws.roomId) return;
     let room = await getRoom(ws.roomId);
@@ -226,7 +243,7 @@ wss.on('connection', (ws) => {
     const me = room.players[meIdx];
 
     // Start
-    if (msg.t === 'start' && !room.started && room.players.length >= 2) {
+    if (msg.t === 'start' && !room.started && room.players.length >= MIN_PLAYERS) {
       room.started = true;
       dealInitial(room);
       await setRoom(ws.roomId, room);
