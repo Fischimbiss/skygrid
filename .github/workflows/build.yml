@@ -21,10 +21,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # 👇 Owner kleinschreiben und als Output bereitstellen
+      - name: Lowercase repo owner
+        id: vars
+        run: echo "owner_lc=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
+        shell: bash
+
       - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ toLower(github.repository_owner) }}/skygrid:latest
-
+          tags: ghcr.io/${{ steps.vars.outputs.owner_lc }}/skygrid:latest
