@@ -1,0 +1,55 @@
+:root {
+  --gap: 10px;
+  --bg: #0f1115;
+  --panel: #151923;
+  --accent: #2e7dff;
+}
+* { box-sizing: border-box }
+body {
+  margin: 0;
+  font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif;
+  background: radial-gradient(1200px 800px at 20% 0%, #1a2030, #0f1115);
+  color: #e5e7eb;
+}
+.app { padding: 16px; max-width: 1100px; margin: 0 auto; }
+.row { display: flex; gap: var(--gap); align-items: center; flex-wrap: wrap; }
+.panel {
+  background: rgba(21,25,35,0.8);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 14px;
+  padding: 12px 16px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+}
+h1 { display: flex; align-items: center; gap: 10px; margin: 8px 0 12px }
+.logo { width: 28px; height: 28px; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, 72px);
+  gap: 10px;
+}
+.card {
+  width: 72px; height: 98px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 22px;
+  user-select: none;
+  transition: transform .17s ease, box-shadow .17s ease, background .17s ease;
+  border: 1px solid rgba(255,255,255,0.15);
+  backdrop-filter: blur(2px);
+}
+.card.hidden { background: linear-gradient(145deg, #2a2f3d, #1b1f2b); border-style: dashed; }
+.card.open { box-shadow: inset 0 0 0 2px rgba(255,255,255,0.07); }
+.card.pickable { outline: 2px solid #2e7dff; cursor: pointer; }
+.card:hover { transform: translateY(-2px); }
+.pile { width: 86px; height: 116px; border-radius: 12px; border:2px dashed rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.03); }
+.player { margin: 8px 0; }
+.tag { padding: 3px 8px; border-radius: 999px; background: rgba(255,255,255,0.08); font-size: 12px; }
+.muted { opacity: .6 }
+.btn { background: #2e7dff; color: white; border: 0; border-radius: 10px; padding: 8px 12px; cursor:pointer; }
+.input { background: #0f1420; border:1px solid rgba(255,255,255,0.15); color: #e5e7eb; border-radius: 10px; padding: 8px 10px; }
+.section { margin-top: 10px }
+.small { font-size: 12px; opacity: .8 }
+.score { font-weight: 600 }
+.value--neg { color: #2ecc71 }
+.value--zero { color: #9ca3af }
+.value--pos { color: #ff5252 }

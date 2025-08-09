@@ -1,0 +1,41 @@
+version: "3.9"
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: skygrid-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+  app:
+    build: .
+    container_name: skygrid-app
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=redis://redis:6379
+      - PORT=3000
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: skygrid-caddy
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - ACME_EMAIL=bjoernf@t-online.de
+      - DOMAIN_GRID=grid.skyserver.online
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - app
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  caddy-data:
+  caddy-config:
