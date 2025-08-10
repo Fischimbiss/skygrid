@@ -10,6 +10,7 @@ export default function App(){
   const [you, setYou] = useState(null)
   const [pending, setPending] = useState(null)
   const [waitingReveal, setWaitingReveal] = useState(false)
+  const [joinCode, setJoinCode] = useState('')            // <— NEU: Raumcode-Feld
   const nameRef = useRef(null)
 
   useEffect(() => {
@@ -31,9 +32,9 @@ export default function App(){
   const isMyTurn = useMemo(()=>state?.players?.[state.turn]?.id === playerId,[state,playerId])
 
   const create = ()=> send({ t:'create', name: nameRef.current?.value || 'Spieler' })
-  const join = ()=> {
-    const rid = prompt('Raumcode (z. B. ABC123):')?.trim().toUpperCase()
-    if (!rid) return
+  const join = ()=> {                                     // <— NEU: kein Prompt mehr
+    const rid = (joinCode || '').trim().toUpperCase()
+    if (!rid) { alert('Bitte Raumcode eingeben (z. B. FXES3B).'); return }
     send({ t:'join', roomId: rid, name: nameRef.current?.value || 'Spieler' })
   }
   const start = ()=> send({ t:'start' })
@@ -41,7 +42,7 @@ export default function App(){
   const takeDiscard = ()=> {
     if (!isMyTurn) return
     if (state.discardTop == null) return
-    setPending(state.discardTop) // tatsächliche Aktion beim Klick auf Karte -> takeDiscard
+    setPending(state.discardTop)
   }
   const keep = ()=> alert('Klicke eine deiner Karten an, um zu tauschen.')
   const reject = ()=> { if (pending!=null) setWaitingReveal(true) }
@@ -67,6 +68,10 @@ export default function App(){
       {!playerId &&
         <div className="panel row">
           <input className="input" placeholder="Dein Name" ref={nameRef}/>
+          <input className="input" placeholder="Raumcode (z. B. FXES3B)"
+                 value={joinCode}
+                 onChange={e=>setJoinCode(e.target.value.toUpperCase())}
+                 style={{ textTransform:'uppercase' }} />
           <button className="btn" onClick={create}>Neues Spiel</button>
           <button className="btn" onClick={join}>Beitreten</button>
         </div>
