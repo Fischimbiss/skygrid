@@ -1,6 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 
-const COLORS = (v)=> v<0 ? 'value--neg' : (v===0?'value--zero':'value--pos')
+// vorher: const COLORS = (v)=> v<0 ? 'value--neg' : (v===0?'value--zero':'value--pos')
+const COLORS = (v)=>{
+  if (v < 0) return 'value--neg';        // z.B. -1, -2
+  if (v === 0) return 'value--zero';
+  if (v <= 3) return 'value--low';       // grün
+  if (v <= 6) return 'value--mid';       // orange
+  return 'value--high';                  // rot
+};
 
 export default function App(){
   const [ws, setWs] = useState(null)
