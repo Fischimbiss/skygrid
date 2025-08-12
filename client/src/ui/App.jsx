@@ -111,7 +111,8 @@ export default function App(){
                 const open = you?.faceUp?.includes(i)
                 const pick = isMyTurn && ((pending!=null && !waitingReveal) || (!open && waitingReveal))
                 return (
-                  <div key={i} className={`card ${open?'':'hidden'} ${pick?'pick':''}`}
+                  <div key={i} 
+                       className={`card ${open ? `value-${v}` : 'hidden'} ${pick ? 'pick' : ''}`}
                        title={pick ? (waitingReveal? 'Aufdecken':'Tauschen') : ''}
                        onClick={()=>onClickOwnCard(i, open)}>
                     {open ? v : ''}
@@ -135,7 +136,7 @@ export default function App(){
                   <div><b>{p.name}</b> – Runde: {p.scoreRound ?? 0} – Gesamt: {p.total} {p.isTurn && <Tag>am Zug</Tag>}</div>
                   <div className="grid" style={{marginTop:8}}>
                     {p.gridPublic.map((v,i)=>(
-                      <div key={i} className={`card ${v==null?'hidden':''}`}>{v ?? ''}</div>
+                      <div key={i} className={`card ${v==null ? 'hidden' : `value-${v}`}`}>{v ?? ''}</div>
                     ))}
                   </div>
                 </div>
