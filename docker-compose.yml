@@ -8,7 +8,7 @@ services:
       - redis-data:/data
 
   app:
-    build: .
+    image: ghcr.io/fischimbiss/skygrid:latest
     container_name: skygrid-app
     environment:
       - NODE_ENV=production
