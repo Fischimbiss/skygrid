@@ -2,6 +2,16 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 
 function Tag({children}){ return <span className="tag">{children}</span> }
 
+// Ordnet Zahlenwerten die CSS-Farbklasse zu
+function getValueClass(v){
+  if (v == null) return ''
+  if (v < 0) return 'value--neg'
+  if (v === 0) return 'value--zero'
+  if (v <= 3) return 'value--low'
+  if (v <= 6) return 'value--mid'
+  return 'value--high'
+}
+
 export default function App(){
   const [ws, setWs] = useState(null)
   const [roomId, setRoomId] = useState('')
@@ -110,11 +120,14 @@ export default function App(){
               {you?.grid?.map((v,i)=>{
                 const open = you?.faceUp?.includes(i)
                 const pick = isMyTurn && ((pending!=null && !waitingReveal) || (!open && waitingReveal))
+                const cls = open ? `open ${getValueClass(v)}` : 'hidden'
                 return (
-                  <div key={i} 
-                       className={`card ${open ? `value-${v}` : 'hidden'} ${pick ? 'pick' : ''}`}
-                       title={pick ? (waitingReveal? 'Aufdecken':'Tauschen') : ''}
-                       onClick={()=>onClickOwnCard(i, open)}>
+                  <div
+                    key={i}
+                    className={`card ${cls} ${pick?'pick':''}`}
+                    title={pick ? (waitingReveal? 'Aufdecken':'Tauschen') : ''}
+                    onClick={()=>onClickOwnCard(i, open)}
+                  >
                     {open ? v : ''}
                   </div>
                 )
@@ -135,13 +148,17 @@ export default function App(){
                 <div key={p.id} className="player">
                   <div><b>{p.name}</b> – Runde: {p.scoreRound ?? 0} – Gesamt: {p.total} {p.isTurn && <Tag>am Zug</Tag>}</div>
                   <div className="grid" style={{marginTop:8}}>
-                    {p.gridPublic.map((v,i)=>(
-                      <div key={i} className={`card ${v==null ? 'hidden' : `value-${v}`}`}>{v ?? ''}</div>
-                    ))}
+                    {p.gridPublic.map((v,i)=>{
+                      const cls = v==null ? 'hidden' : `open ${getValueClass(v)}`
+                      return (
+                        <div key={i} className={`card ${cls}`}>{v ?? ''}</div>
+                      )
+                    })}
                   </div>
                 </div>
               ))}
             </div>
+
             <div className="footer">Tipp: Klicke auf den Ziehstapel/Ablage und dann auf eine deiner Karten, um zu tauschen.</div>
           </div>
         )}
