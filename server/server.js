@@ -252,13 +252,24 @@ wss.on('connection', (ws) => {
     const me = room.players[meIdx];
 
     // Start
-    if (msg.t === 'start' && !room.started && room.players.length >= MIN_PLAYERS) {
-      room.started = true;
-      dealInitial(room);
-      await setRoom(ws.roomId, room);
-      broadcastState(ws.roomId);
+  if (msg.t === 'start') {
+    if (room.started) {
+      send(ws, { t:'info', m:'Spiel läuft bereits.' });
       return;
     }
+    if (room.players.length < MIN_PLAYERS) {
+      send(ws, { t:'error', m:`Mindestens ${MIN_PLAYERS} Spieler:innen erforderlich.` });
+      console.log(`[START] abgelehnt: players=${room.players.length} < ${MIN_PLAYERS} (room ${ws.roomId})`);
+      return;
+    }
+
+  room.started = true;
+  dealInitial(room);
+  await setRoom(ws.roomId, room);
+  broadcastState(ws.roomId);
+  console.log(`[START] ok: players=${room.players.length} (room ${ws.roomId})`);
+  return;
+}
 
     // Only active player's turn
     if (room.turn !== meIdx) { send(ws, { t:'info', m:'Nicht dein Zug.' }); return; }
